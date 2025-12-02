@@ -1,6 +1,6 @@
 module AoC.Day02 where
 
-import Data.List.Split (splitOn)
+import Data.List.Split (chunksOf, splitOn)
 import qualified Utils
 
 type Range = (Int, Int)
@@ -16,20 +16,12 @@ isTwiceRepeat numStr
        in left == right
   | otherwise = False
 
-isPrefixRepeat :: String -> String -> Bool
-isPrefixRepeat prefix numStr
-  | null numStr = True
-  | length numStr `mod` prefixLen == 0 =
-      let currPrefix = take prefixLen numStr
-          numStrNoPrefix = drop prefixLen numStr
-       in ((currPrefix == prefix) && isPrefixRepeat prefix numStrNoPrefix)
-  | otherwise = False
-  where
-    prefixLen = length prefix
+isMultiRepeatHelper :: [String] -> Bool
+isMultiRepeatHelper xs = all (== head xs) xs
 
 isMultiRepeat :: String -> Bool
 isMultiRepeat numStr =
-  any (\len -> isPrefixRepeat (take len numStr) numStr) [1 .. (length numStr `div` 2)]
+  any (\len -> isMultiRepeatHelper $ chunksOf len numStr) [1 .. (length numStr `div` 2)]
 
 sumInvalidIDs :: (String -> Bool) -> Range -> Int
 sumInvalidIDs isInvalidID (start, end)
