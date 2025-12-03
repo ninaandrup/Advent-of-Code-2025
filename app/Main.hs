@@ -2,6 +2,7 @@ module Main where
 
 import qualified AoC.Day01
 import qualified AoC.Day02
+import qualified AoC.Day03
 import qualified AoC2024.Day01
 import qualified AoC2024.Day02
 import System.Environment (getArgs)
@@ -21,6 +22,7 @@ getDaySolution "2401" = AoC2024.Day01.solution
 getDaySolution "2402" = AoC2024.Day02.solution
 getDaySolution "01" = AoC.Day01.solution
 getDaySolution "02" = AoC.Day02.solution
+getDaySolution "03" = AoC.Day03.solution
 getDaySolution _ = error "No solution-implementation found for the given day."
 
 printSolution :: String -> [String] -> IO ()
