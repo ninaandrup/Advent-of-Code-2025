@@ -1,4 +1,4 @@
-module AoC.Day02 where
+module AoC.Day02 (solution) where
 
 import Data.List.Split (chunksOf, splitOn)
 import qualified Utils.Utils as Utils

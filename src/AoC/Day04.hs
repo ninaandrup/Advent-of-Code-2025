@@ -1,4 +1,4 @@
-module AoC.Day04 where
+module AoC.Day04 (solution) where
 
 import qualified Utils.Grid as Grid
 import qualified Utils.Utils as Utils
