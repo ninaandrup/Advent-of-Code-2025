@@ -21,12 +21,6 @@ instance Functor Grid where
 instance (Show a) => Show (Grid a) where
   show grid = show (width grid, height grid, show (cells grid))
 
-getAbove :: Int -> Grid a -> Maybe a
-getAbove idx grid = cells grid V.!? (idx - width grid)
-
-getBelow :: Int -> Grid a -> Maybe a
-getBelow idx grid = cells grid V.!? (idx + width grid)
-
 getValidAdjacentIndices :: Int -> Grid a -> V.Vector Int
 getValidAdjacentIndices idx grid =
   let isLeftEdge = idx `mod` width grid == 0
