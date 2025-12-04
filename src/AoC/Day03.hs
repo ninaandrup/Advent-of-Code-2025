@@ -2,7 +2,7 @@ module AoC.Day03 where
 
 import Data.List (elemIndex)
 import qualified Data.Map as Map
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 type JoltageMap = Map.Map Int Int
 

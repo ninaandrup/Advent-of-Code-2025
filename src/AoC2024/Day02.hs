@@ -1,6 +1,6 @@
 module AoC2024.Day02 (solution) where
 
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 parsing :: [String] -> [[Int]]
 parsing = Utils.splitInputToList (\x -> read x :: Int) " "

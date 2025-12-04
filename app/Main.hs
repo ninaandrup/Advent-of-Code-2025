@@ -3,10 +3,11 @@ module Main where
 import qualified AoC.Day01
 import qualified AoC.Day02
 import qualified AoC.Day03
+import qualified AoC.Day04
 import qualified AoC2024.Day01
 import qualified AoC2024.Day02
 import System.Environment (getArgs)
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 parseDay :: String -> String -> String
 parseDay suffix ('2' : '4' : a : b : _) = "Y2024_" ++ parseDay suffix [a, b]
@@ -23,6 +24,7 @@ getDaySolution "2402" = AoC2024.Day02.solution
 getDaySolution "01" = AoC.Day01.solution
 getDaySolution "02" = AoC.Day02.solution
 getDaySolution "03" = AoC.Day03.solution
+getDaySolution "04" = AoC.Day04.solution
 getDaySolution _ = error "No solution-implementation found for the given day."
 
 printSolution :: String -> [String] -> IO ()

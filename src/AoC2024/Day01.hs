@@ -2,7 +2,7 @@ module AoC2024.Day01 (solution) where
 
 import qualified Data.Bifunctor
 import Data.List (sort)
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 parsing :: [String] -> ([Int], [Int])
 parsing = unzip . Utils.splitInputToPair (\x -> read x :: Int) "   "

@@ -1,7 +1,7 @@
 module AoC.Day02 where
 
 import Data.List.Split (chunksOf, splitOn)
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 type Range = (Int, Int)
 

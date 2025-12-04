@@ -1,6 +1,6 @@
 module AoC.Day01 (solution) where
 
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 parsing :: String -> Either Int Int
 parsing ('L' : num) = Left (read num :: Int)
