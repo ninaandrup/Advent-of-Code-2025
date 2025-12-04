@@ -15,42 +15,38 @@ data Grid a = Grid
     cells :: V.Vector a
   }
 
-indexGrid :: Int -> Int -> Int -> Int
-indexGrid w row col = row * w + col
+instance Functor Grid where
+  fmap f grid = Grid {width = width grid, height = height grid, cells = V.map f (cells grid)}
 
-lookupGrid :: Int -> Int -> Grid a -> Maybe a
-lookupGrid row col grid
-  | row < 0 || col < 0 = Nothing
-  | h - 1 < row = Nothing
-  | w - 1 < col = Nothing
-  | otherwise = cells grid V.!? i
+instance (Show a) => Show (Grid a) where
+  show grid = show (width grid, height grid, show (cells grid))
+
+getAbove :: Int -> Grid a -> Maybe a
+getAbove idx grid = cells grid V.!? (idx - width grid)
+
+getBelow :: Int -> Grid a -> Maybe a
+getBelow idx grid = cells grid V.!? (idx + width grid)
+
+getValidAdjacentIndices :: Int -> Grid a -> V.Vector Int
+getValidAdjacentIndices idx grid =
+  let isLeftEdge = idx `mod` width grid == 0
+      isRightEdge = (idx + 1) `mod` width grid == 0
+
+      left = if isLeftEdge then [] else [above - 1, idx - 1, below - 1]
+      right = if isRightEdge then [] else [above + 1, idx + 1, below + 1]
+
+      adjacentIndices = [above, below] ++ left ++ right
+   in V.filter (\i -> 0 <= i && i < len) (V.fromList adjacentIndices)
   where
-    w = width grid
-    h = height grid
-    i = indexGrid w row col
+    above = idx - width grid
+    below = idx + width grid
+    len = V.length (cells grid)
 
-mapGrid :: (a -> b) -> Grid a -> Grid b
-mapGrid f grid =
-  Grid
-    { width = width grid,
-      height = height grid,
-      cells = V.map f (cells grid)
-    }
+getAdjacent :: Int -> Grid a -> V.Vector a
+getAdjacent idx grid = V.map (\i -> cells grid V.! i) (getValidAdjacentIndices idx grid)
 
-countGrid :: (a -> Bool) -> Grid a -> Int
-countGrid predicate grid = V.length $ V.filter predicate (cells grid)
-
-getGridWithPos :: Grid a -> Grid (a, (Int, Int))
-getGridWithPos grid =
-  let pos = V.fromList [(r, c) | r <- [0 .. height grid - 1], c <- [0 .. width grid - 1]]
-   in Grid
-        { width = width grid,
-          height = height grid,
-          cells = V.zip (cells grid) pos
-        }
-
-fromListGrid :: [[a]] -> Grid a
-fromListGrid grid
+fromGridList :: [[a]] -> Grid a
+fromGridList grid
   | null grid = Grid {width = 0, height = 0, cells = V.empty}
   | otherwise =
       Grid
@@ -59,25 +55,11 @@ fromListGrid grid
           cells = V.fromList (concat grid)
         }
 
-adjecentPositions :: Int -> Int -> V.Vector (Int, Int)
-adjecentPositions row col =
-  let deltas =
-        [ (-1, -1),
-          (-1, 0),
-          (-1, 1),
-          (0, -1),
-          (0, 1),
-          (1, -1),
-          (1, 0),
-          (1, 1)
-        ]
-      adjecentPos = [(row + dr, col + dc) | (dr, dc) <- deltas]
-   in V.fromList adjecentPos
+adjacentCount :: (a -> Bool) -> Grid a -> Grid (a, Int)
+adjacentCount predicate grid =
+  let adjacentElems = V.imap (\i v -> (v, getAdjacent i grid)) $ cells grid
+      adjacentCountVec = V.map (second (length . V.filter id . V.map predicate)) adjacentElems
+   in Grid {width = width grid, height = height grid, cells = adjacentCountVec}
 
-adjecentCount :: (a -> Bool) -> Grid a -> Grid (a, Int)
-adjecentCount predicate grid =
-  let gridWithAdjecentPos = mapGrid (second (uncurry adjecentPositions)) $ getGridWithPos grid
-      gridWithAdjecentVals = mapGrid (second (V.map (\(r, c) -> lookupGrid r c grid))) gridWithAdjecentPos
-      predicateF = maybe False predicate
-      gridWithAdjecentCount = mapGrid (second (V.length . V.filter id . V.map predicateF)) gridWithAdjecentVals
-   in gridWithAdjecentCount
+countGrid :: (a -> Bool) -> Grid a -> Int
+countGrid predicate = V.length . V.filter predicate . cells
