@@ -64,8 +64,10 @@ library
                       AoC.Day02,
                       AoC.Day03,
                       AoC.Day04,
-                      Utils.Utils,
-                      Utils.Grid
+                      AoC.Day05,
+                      Utils.BBST,
+                      Utils.Grid,
+                      Utils.Utils
 
     -- Modules included in this library but not exported.
     -- other-modules:
