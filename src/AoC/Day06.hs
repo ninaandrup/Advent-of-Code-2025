@@ -1,7 +1,8 @@
 module AoC.Day06 (solution) where
 
 import Data.List (transpose)
-import Data.List.Split (splitOneOf)
+import Data.List.Split (splitOneOf, splitWhen)
+import Debug.Trace (trace)
 import qualified Utils.Utils as Utils
 
 data Operand = Add | Multiply
@@ -24,25 +25,18 @@ parsing = map toMathProblem . transpose . Utils.splitInputAtWhitespace id
 solution1 :: Utils.SolutionSingle
 solution1 = sum . map solveMathProblem . parsing
 
-parsingV2 :: [String] -> [MathProblem]
-parsingV2 input =
-  let operandStr = last input
-      operands = map (\o -> if o == "+" then Add else Multiply) $ words operandStr
-
-      splitNumbers = map (splitNumbersBeforeOperands operandStr) $ init input
-      colNumbers = map transpose $ transpose splitNumbers
-   in toMathProblem operands colNumbers
-  where
-    splitNumbersBeforeOperands :: String -> String -> [String]
-    splitNumbersBeforeOperands opers str =
-      let shiftOpers = tail opers ++ [' ']
-       in splitOneOf "+*" $
-            zipWith (\o c -> if o /= ' ' then o else c) shiftOpers str
-    toMathProblem :: [Operand] -> [[String]] -> [MathProblem]
-    toMathProblem = zipWith (\o c -> Math {operand = o, values = map read c})
-
 solution2 :: Utils.SolutionSingle
-solution2 = sum . map solveMathProblem . parsingV2
+solution2 =
+  sum
+    . map (solveMathProblem . toMathProblem)
+    . splitWhen (all (== ' '))
+    . transpose
+  where
+    toMathProblem :: [String] -> MathProblem
+    toMathProblem group =
+      let oper = if last (head group) == '+' then Add else Multiply
+          numbers = map read (init (head group) : tail group)
+       in Math {operand = oper, values = numbers}
 
 solution :: Utils.Solution
 solution = (solution1, solution2)
