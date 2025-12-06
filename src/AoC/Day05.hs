@@ -52,8 +52,12 @@ solution1 input =
       mergedRanges = mergeRanges ranges
    in length $ filter (`ingredientIsFresh` mergedRanges) ids
 
+countFreshIngredients :: [Range] -> Int
+countFreshIngredients ranges =
+  sum [x2 - x1 + 1 | Range (x1, x2) <- ranges]
+
 solution2 :: Utils.SolutionSingle
-solution2 input = 0 -- Placeholder implementation for Part 2
+solution2 = countFreshIngredients . mergeRanges . fst . parsing
 
 solution :: Utils.Solution
 solution = (solution1, solution2)

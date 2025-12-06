@@ -17,3 +17,6 @@ splitInputToPair converter substr = map (splitInputToPairHelper converter substr
 
 splitInputToList :: (String -> a) -> String -> [String] -> [[a]]
 splitInputToList converter substr = map (map converter . splitOn substr)
+
+splitInputAtWhitespace :: (String -> a) -> [String] -> [[a]]
+splitInputAtWhitespace converter = map (map converter . words)
