@@ -1,8 +1,7 @@
 module AoC.Day06 (solution) where
 
 import Data.List (transpose)
-import Data.List.Split (splitOneOf, splitWhen)
-import Debug.Trace (trace)
+import Data.List.Split (splitWhen)
 import qualified Utils.Utils as Utils
 
 data Operand = Add | Multiply
