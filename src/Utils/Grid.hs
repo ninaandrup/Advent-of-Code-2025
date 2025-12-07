@@ -58,6 +58,14 @@ getCellSafe (x, y) grid
   | validCell (x, y) grid = Just $ getCell (x, y) grid
   | otherwise = Nothing
 
+setCell :: CellPos -> a -> Grid a -> Grid a
+setCell (x, y) v grid =
+  Grid
+    { width = width grid,
+      height = height grid,
+      cells = cells grid V.// [(x * width grid + y, v)]
+    }
+
 validCell :: CellPos -> Grid a -> Bool
 validCell (x, y) grid
   | height grid <= x = False
