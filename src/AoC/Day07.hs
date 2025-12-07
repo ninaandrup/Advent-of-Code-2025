@@ -1,6 +1,11 @@
+{-# LANGUAGE TupleSections #-}
+
 module AoC.Day07 (solution) where
 
-import Data.List (elemIndex)
+import qualified Data.Bifunctor
+import Data.List (elemIndex, elemIndices, transpose)
+import Data.Map ((!))
+import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified Data.Vector as V
@@ -32,37 +37,57 @@ part1 input =
       hitSplitter (x, y) = Maybe.fromMaybe False $ G.getCellSafe (x + 1, y) grid
    in length . filter hitSplitter $ Set.toList dfsVisited
 
-modifiedDFS :: G.CellPos -> G.Grid Bool -> Int
-modifiedDFS start tachyonManifold = fst $ modifiedDFSIter start resStartGrid
-  where
-    resStartGrid :: G.Grid (Maybe Int)
-    resStartGrid =
-      G.Grid
-        { G.width = G.width tachyonManifold,
-          G.height = G.height tachyonManifold,
-          G.cells = V.map (const Nothing) $ G.cells tachyonManifold
+data NewGrid
+  = NewGrid
+  { height :: Int,
+    gridRowCol :: Map.Map Int [Int],
+    gridColRow :: Map.Map Int [Int]
+  }
+
+type SplitterValues = Map.Map (Int, Int) Int
+
+parsingPart2 :: [String] -> NewGrid
+parsingPart2 input =
+  let nonEmptyInput = filter (not . all (== '.')) input
+      inputRows = zip [0 ..] nonEmptyInput
+      inputCols = zip [0 ..] $ transpose nonEmptyInput
+
+      findSplitters = map (Data.Bifunctor.second (elemIndices '^'))
+   in NewGrid
+        { height = length inputCols - 1,
+          gridRowCol = Map.fromList $ findSplitters inputRows,
+          gridColRow = Map.fromList $ findSplitters inputCols
         }
-    modifiedDFSIter :: G.CellPos -> G.Grid (Maybe Int) -> (Int, G.Grid (Maybe Int))
-    modifiedDFSIter cellPos timelineGrid =
-      case G.getCell cellPos timelineGrid of
-        Just v -> (v, timelineGrid)
-        Nothing ->
-          let adjacentPosistions = adjacent tachyonManifold cellPos
-           in case adjacentPosistions of
-                [] -> (1, G.setCell cellPos (Just 1) timelineGrid)
-                _ ->
-                  foldl
-                    ( \(sumAcc, timelineGridAcc) adjPos ->
-                        let (num, timelineGridAcc') = modifiedDFSIter adjPos timelineGridAcc
-                         in (trace (show num) $ sumAcc + num, timelineGridAcc')
-                    )
-                    (0, timelineGrid)
-                    adjacentPosistions
+
+getSplitValueBelow :: (Int, Int) -> NewGrid -> SplitterValues -> Int
+getSplitValueBelow (row, col) grid splitterValues =
+  case closestSplitter of
+    Nothing -> 1
+    Just r -> splitterValues ! (r, col)
+  where
+    sameCol = gridColRow grid ! col
+    closestSplitter = Set.lookupGT row $ Set.fromList sameCol
+
+computeSplitterValues :: Int -> NewGrid -> SplitterValues -> SplitterValues
+computeSplitterValues 0 _ splitterValues = splitterValues
+computeSplitterValues row grid splitterValues =
+  case Map.lookup row $ gridRowCol grid of
+    Nothing -> next splitterValues
+    Just [] -> next splitterValues
+    Just cols -> next newSplitterValues
+      where
+        splitValuesBelow c = getSplitValueBelow (row, c) grid splitterValues
+        colSplitterValues = map (\c -> ((row, c), splitValuesBelow (c - 1) + splitValuesBelow (c + 1))) cols
+        newSplitterValues = splitterValues `Map.union` Map.fromList colSplitterValues
+  where
+    next = computeSplitterValues (row - 1) grid
 
 part2 :: Utils.SolutionSingle
 part2 input =
-  let (startPos, grid) = parsing input
-   in modifiedDFS startPos grid
+  let startPos = (0, Maybe.fromJust . elemIndex 'S' $ head input)
+      splittersGrid = parsingPart2 input
+      splitterValues = computeSplitterValues (height splittersGrid) splittersGrid Map.empty
+   in getSplitValueBelow startPos splittersGrid splitterValues
 
 solution :: Utils.Solution
 solution = (part1, part2)
