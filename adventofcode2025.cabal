@@ -69,6 +69,7 @@ library
                       AoC.Day07,
                       Utils.BBST,
                       Utils.Grid,
+                      Utils.Stack,
                       Utils.Utils
 
     -- Modules included in this library but not exported.
