@@ -1,6 +1,7 @@
 module AoC.Day08 where
 
-import Data.List (sort, sortBy, sortOn)
+import qualified Data.Bifunctor
+import Data.List (sortBy, sortOn)
 import qualified Data.Set as Set
 import qualified Data.Vector as V
 import qualified Utils.Utils as Utils
@@ -32,10 +33,10 @@ computePointPairsByDistances points =
    in V.map fst pairsWithDistSorted
 
 generateCircuits :: PointPairsSorted -> PointCircuits
-generateCircuits = foldl (flip generateCircuitsHelper) [] . sort . V.toList
+generateCircuits = foldl (flip addPointToGroup) []
   where
-    generateCircuitsHelper :: (Int, Int) -> PointCircuits -> PointCircuits
-    generateCircuitsHelper p@(i, j) circuits =
+    addPointToGroup :: (Int, Int) -> PointCircuits -> PointCircuits
+    addPointToGroup p@(i, j) circuits =
       Set.insert i (Set.insert j connected) : rest
       where
         (connected, rest) = alreadyConnected p circuits
@@ -58,8 +59,38 @@ part1 input =
   where
     connections = if length input < 21 then 10 else 1000
 
+generateCircuitsV2 :: Int -> PointPairsSorted -> (Int, Int)
+generateCircuitsV2 len = generateCircuitsAux [] . V.toList
+  where
+    generateCircuitsAux :: PointCircuits -> [(Int, Int)] -> (Int, Int)
+    generateCircuitsAux _ [] = error "No circuit found"
+    generateCircuitsAux circuits (p : rest)
+      | length newCircuits == 1 && Set.size (head newCircuits) == len = p
+      | otherwise = generateCircuitsAux newCircuits rest
+      where
+        newCircuits = addPointToGroup p circuits
+
+    addPointToGroup :: (Int, Int) -> PointCircuits -> PointCircuits
+    addPointToGroup p@(i, j) circuits =
+      Set.insert i (Set.insert j connected) : rest
+      where
+        (connected, rest) = alreadyConnected p circuits
+
+    alreadyConnected :: (Int, Int) -> PointCircuits -> (Set.Set Int, PointCircuits)
+    alreadyConnected _ [] = (Set.empty, [])
+    alreadyConnected p@(i, j) (circuit : rest)
+      | Set.member i circuit || Set.member j circuit = (circuit `Set.union` connected, rest')
+      | otherwise = (connected, circuit : rest')
+      where
+        (connected, rest') = alreadyConnected p rest
+
 part2 :: Utils.SolutionSingle
-part2 input = 0
+part2 input =
+  let points = parsing input
+      pointPairs = computePointPairsByDistances points
+      lastTwoPoints = generateCircuitsV2 (V.length points) pointPairs
+   in case Data.Bifunctor.bimap (points V.!) (points V.!) lastTwoPoints of
+        ((x1, _, _), (x2, _, _)) -> x1 * x2
 
 solution :: Utils.Solution
 solution = (part1, part2)
