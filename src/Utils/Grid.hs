@@ -1,6 +1,5 @@
 module Utils.Grid where
 
-import qualified Data.Set as Set
 import qualified Data.Vector as V
 
 -- Row-major 2D grid
@@ -72,21 +71,3 @@ validCell (x, y) grid
   | y < 0 = False
   | width grid <= y = False
   | otherwise = True
-
-type Visited = Set.Set CellPos
-
-type Adjacent = (CellPos -> [CellPos])
-
-dfs :: CellPos -> Adjacent -> Visited
-dfs start adj = dfsIter start Set.empty
-  where
-    dfsIter :: CellPos -> Visited -> Visited
-    dfsIter cellPos visited =
-      foldl
-        ( \acc adjPos ->
-            if Set.member adjPos acc
-              then acc
-              else dfsIter adjPos acc
-        )
-        (Set.insert cellPos visited)
-        $ adj cellPos

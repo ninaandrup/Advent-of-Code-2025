@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-
 module AoC.Day07 (solution) where
 
 import qualified Data.Bifunctor
@@ -9,33 +7,36 @@ import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified Data.Vector as V
-import Debug.Trace (trace)
-import qualified Utils.Grid as G
 import qualified Utils.Utils as Utils
 
-parsing :: [String] -> ((Int, Int), G.Grid Bool)
+parsing :: [String] -> (V.Vector Bool, [V.Vector Bool])
 parsing input =
-  let startPos = (0, Maybe.fromJust . elemIndex 'S' $ head input)
+  let startVector = V.fromList . map (== 'S') $ head input
       noEmptyLines = filter (not . all (== '.')) input
-      grid = G.fromGridList . map (map (== '^')) $ noEmptyLines
-   in (startPos, grid)
+      grid = map (V.fromList . map (== '^')) $ noEmptyLines
+   in (startVector, grid)
 
-adjacent :: G.Grid Bool -> G.Adjacent
-adjacent grid (x, y) =
-  let possibleAdj = case G.getCellSafe below grid of
-        Just True -> [(x + 1, y - 1), (x + 1, y + 1)]
-        Just False -> [(x + 1, y)]
-        Nothing -> []
-   in filter (`G.validCell` grid) possibleAdj
+step :: V.Vector Bool -> [V.Vector Bool] -> Int
+step _ [] = 0
+step currentBeamPos (row : rows) =
+  let (splitCounts, allUpdates) =
+        V.foldl concatUpdates (0, []) $ V.izipWith (,,) currentBeamPos row
+   in splitCounts + step (currentBeamPos V.// allUpdates) rows
   where
-    below = (x + 1, y)
+    hitSplitter :: Int -> Bool -> Bool -> (Int, [(Int, Bool)])
+    hitSplitter idx beam splitter
+      | beam && splitter = (1, [(idx - 1, True), (idx, False), (idx + 1, True)])
+      | otherwise = (0, [])
+
+    concatUpdates :: (Int, [(Int, Bool)]) -> (Int, Bool, Bool) -> (Int, [(Int, Bool)])
+    concatUpdates (splits, updates) (idx, beam, splitter) =
+      let (s, u) = hitSplitter idx beam splitter
+       in (splits + s, updates ++ u)
 
 part1 :: Utils.SolutionSingle
 part1 input =
-  let (startPos, grid) = parsing input
-      dfsVisited = G.dfs startPos (adjacent grid)
-      hitSplitter (x, y) = Maybe.fromMaybe False $ G.getCellSafe (x + 1, y) grid
-   in length . filter hitSplitter $ Set.toList dfsVisited
+  let (startVector, grid) = parsing input
+   in step startVector grid
 
 data NewGrid
   = NewGrid
