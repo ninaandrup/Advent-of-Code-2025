@@ -36,38 +36,3 @@ fromGridList grid
           height = length grid,
           cells = V.fromList (concat grid)
         }
-
-type CellPos = (Int, Int)
-
--- Convert (x, y) coordinates to (row, column) index
---
--- [[a00, a01, a02, a03],
---  [a10, a11, a12, a13],
---  [a20, a21, a22, a23]]
---
--- (0,0) -> a00
--- (0,1) -> a01
--- (1,0) -> a10
--- (2,3) -> a23
-getCell :: CellPos -> Grid a -> a
-getCell (x, y) grid = cells grid V.! (x * width grid + y)
-
-getCellSafe :: CellPos -> Grid a -> Maybe a
-getCellSafe (x, y) grid
-  | validCell (x, y) grid = Just $ getCell (x, y) grid
-  | otherwise = Nothing
-
-setCell :: CellPos -> a -> Grid a -> Grid a
-setCell (x, y) v grid =
-  Grid
-    { width = width grid,
-      height = height grid,
-      cells = cells grid V.// [(x * width grid + y, v)]
-    }
-
-validCell :: CellPos -> Grid a -> Bool
-validCell (x, y) grid
-  | height grid <= x = False
-  | y < 0 = False
-  | width grid <= y = False
-  | otherwise = True
