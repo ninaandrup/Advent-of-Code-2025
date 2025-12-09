@@ -68,6 +68,7 @@ library
                       AoC.Day06,
                       AoC.Day07,
                       AoC.Day08,
+                      AoC.Day09,
                       Utils.BBST,
                       Utils.Grid,
                       Utils.Utils
