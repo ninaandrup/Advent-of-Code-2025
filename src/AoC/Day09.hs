@@ -47,7 +47,7 @@ part2 :: Utils.SolutionSingle
 part2 input =
   let points = Utils.splitInputToPair read "," input :: [(Int, Int)]
       (subGroup1, subGroup2) = partitionPoints points
-      subGroup1Areas = map (area point1) subGroup1
+      subGroup1Areas = map (area point1) $ trace (show subGroup1) subGroup1
       subGroup2Areas = map (area point2) subGroup2
    in maximum subGroup1Areas `max` maximum subGroup2Areas
 
