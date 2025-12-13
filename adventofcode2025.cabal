@@ -69,7 +69,9 @@ library
                       AoC.Day07,
                       AoC.Day08,
                       AoC.Day09,
+                      AoC.Day10,
                       AoC.Day11,
+                      AoC.Day12,
                       Utils.BBST,
                       Utils.Grid,
                       Utils.Utils
@@ -84,7 +86,8 @@ library
     build-depends:    base ^>=4.18.3.0,
                       split,
                       containers,
-                      vector
+                      vector,
+                      extra
 
     -- Directories containing source files.
     hs-source-dirs:   src
