@@ -16,7 +16,7 @@ type ButtonWire = [Bool]
 
 type JoltageRequirement = [Int]
 
-data ParsedLine = ParsedLine
+data MachineInfo = MachineInfo
   { indicatorLights :: IndicatorLight,
     buttonWires :: Seq.Seq ButtonWire,
     numButtonWires :: Int,
@@ -24,10 +24,10 @@ data ParsedLine = ParsedLine
   }
   deriving (Show)
 
-parsing :: [String] -> [ParsedLine]
+parsing :: [String] -> [MachineInfo]
 parsing = map parseLine
 
-parseLine :: String -> ParsedLine
+parseLine :: String -> MachineInfo
 parseLine line =
   let parts = words line
       indicators = parseIndicatorLights (head parts)
@@ -36,7 +36,7 @@ parseLine line =
       buttons = map (parseButtonWires len) middleParts
       lastPart = last parts
       requirements = parseJoltageRequirement lastPart
-   in ParsedLine
+   in MachineInfo
         { indicatorLights = indicators,
           buttonWires = Seq.fromList buttons,
           numButtonWires = length buttons,
@@ -62,9 +62,9 @@ parseJoltageRequirement s =
   let content = filter (\c -> isDigit c || c == ',') s
    in map read (splitOn "," content)
 
--- Generate all combinations of k elements from length n
-combinations :: Int -> Int -> [[Int]]
-combinations n = go 0
+-- Generate all combinations of k elements from length n (with no duplicates)
+combinationsNoDuplicates :: Int -> Int -> [[Int]]
+combinationsNoDuplicates n = go 0
   where
     go :: Int -> Int -> [[Int]]
     go i k
@@ -72,33 +72,33 @@ combinations n = go 0
       | n < k = error "k must not be greater than n"
       | k == 0 = [[]]
       | k == n - i = [[i .. n - 1]]
-      | otherwise = map (i :) (go (i + 1) (k - 1)) ++ go (i + 1) k
+      | k < n - i = map (i :) (go (i + 1) (k - 1)) ++ go (i + 1) k
+      | otherwise = error "something unexpected happened"
 
 -- SOLUTION --
 
-pressButtonsResult :: [ButtonWire] -> IndicatorLight
-pressButtonsResult = map (NonEmpty.xor . NonEmpty.fromList) . transpose
+pressButtonsLightResult :: [ButtonWire] -> IndicatorLight
+pressButtonsLightResult = map (NonEmpty.xor . NonEmpty.fromList) . transpose
 
-getButtons :: [Int] -> Seq.Seq ButtonWire -> [ButtonWire]
-getButtons indices wires = map (Seq.index wires) indices
+getButtonsFromIndices :: [Int] -> Seq.Seq ButtonWire -> [ButtonWire]
+getButtonsFromIndices indices wires = map (Seq.index wires) indices
 
-fewestButtonPresses :: ParsedLine -> Int
-fewestButtonPresses parsedLine = go 1
+fewestButtonPresses :: MachineInfo -> Int
+fewestButtonPresses machineInfo = go 1
   where
     go :: Int -> Int
     go presses = if result then presses else go (presses + 1)
       where
-        pressCombinations = combinations (numButtonWires parsedLine) presses
-        buttonCombinations = map (`getButtons` buttonWires parsedLine) pressCombinations
-        result = foldl (\acc press -> acc || pressButtonsResult press == indicatorLights parsedLine) False buttonCombinations
+        pressCombinations = combinationsNoDuplicates (numButtonWires machineInfo) presses
+        buttonCombinations = map (`getButtonsFromIndices` buttonWires machineInfo) pressCombinations
+        buttonLightResult = map pressButtonsLightResult buttonCombinations
+        result = foldl (\acc press -> acc || press == indicatorLights machineInfo) False buttonLightResult
 
 part1 :: Utils.SolutionSingle
-part1 input =
-  let parsedInput = parsing input
-   in sum $ map fewestButtonPresses parsedInput
+part1 = sum . map fewestButtonPresses . parsing
 
 part2 :: Utils.SolutionSingle
-part2 _ = 0
+part2 input = 0
 
 solution :: Utils.Solution
 solution = (part1, part2)
