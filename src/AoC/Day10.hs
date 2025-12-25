@@ -98,7 +98,7 @@ part1 :: Utils.SolutionSingle
 part1 = sum . map fewestButtonPresses . parsing
 
 part2 :: Utils.SolutionSingle
-part2 input = 0
+part2 _ = 0
 
 solution :: Utils.Solution
 solution = (part1, part2)
